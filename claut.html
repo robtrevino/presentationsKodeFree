@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KodeFree - IA en la Industria Automotriz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #0B1120; color: #F8FAFC; overflow: hidden; }
+        .slide { display: none; height: calc(100vh - 176px); overflow-y: auto; padding-bottom: 40px; position: relative; }
+        .slide.active { display: block; animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .kf-red { color: #E63946; }
+        .bg-kf-red { background-color: #E63946; }
+        .border-kf-red { border-color: #E63946; }
+        .glass-panel { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; }
+        
+        /* Ocultar barra de scroll para un look más limpio */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0B1120; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        /* Reglas para imprimir en PDF (Ctrl+P / Cmd+P) */
+        @media print {
+            body { overflow: visible !important; background-color: #0B1120 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            header, footer, #dot-indicators, #fixed-slide-number { display: none !important; }
+            .slide { display: block !important; height: 100vh !important; page-break-after: always; padding: 20px !important; overflow: hidden !important; position: relative; }
+            main { padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .glass-panel { break-inside: avoid; }
+        }
+
+        @property --gradient-color-1 {
+            syntax: '<color>';
+            inherits: false;
+            initial-value: #ff4545;
+        }
+        @property --gradient-color-2 {
+            syntax: '<color>';
+            inherits: false;
+            initial-value: #00ff99;
+        }
+        @property --gradient-color-3 {
+            syntax: '<color>';
+            inherits: false;
+            initial-value: #006aff;
+        }
+        @property --gradient-color-4 {
+            syntax: '<color>';
+            inherits: false;
+            initial-value: #ff0095;
+        }
+
+        .glow-header{
+            position: relative;
+        }
+
+        .glow-header::after {
+            content: '';
+            position: absolute;
+            height: 1px;
+            bottom: 0%;
+            width: 100%;
+            left: 0;
+            z-index:-1;
+            background-image: linear-gradient(90deg, var(--gradient-color-1),var(--gradient-color-2),var(--gradient-color-3),var(--gradient-color-4),var(--gradient-color-1) );
+            animation: morphColors 2s linear forwards;
+        }
+        @keyframes morphColors{
+            0% {
+                --gradient-color-1: #ff4545;
+                --gradient-color-2: #00ff99;
+                --gradient-color-3: #006aff;
+                --gradient-color-4: #ff0095;
+            }
+            33% {
+                --gradient-color-1: #006aff;
+                --gradient-color-2: #ff4545;
+                --gradient-color-3: #00ff99;
+                --gradient-color-4: #006aff;
+            }
+            66% {
+                --gradient-color-1: #00ff99;
+                --gradient-color-2: #006aff;
+                --gradient-color-3: #ff4545;
+                --gradient-color-4: #00ff99;
+            }
+            100% {
+                --gradient-color-1: gray;
+                --gradient-color-2: gray;
+                --gradient-color-3: gray;
+                --gradient-color-4: gray;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen font-sans">
+
+    <!-- Navbar / Header -->
+    <header class="flex justify-between items-center p-6 border-b border-gray-800 h-20 shrink-0 glow-header" id="main-header">
+        <div class="flex items-center gap-3">
+            <!-- Logo simplificado KodeFree -->
+            <svg width="129" height="40" viewBox="0 0 619 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.9417 34.938H0.0429688L0.0945191 134.384H21.9417V90.1227L62.2868 134.384H90.6263L43.9434 82.9605L83.2065 34.938H56.2067L21.9417 76.3651V34.938Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M199.293 136.157C181.918 136.157 167.832 119.685 167.832 99.3667C167.832 79.0483 181.918 62.5769 199.293 62.5769C206.938 62.5769 213.946 65.7657 219.398 71.0679V29.0806H240.612V134.309H219.374V127.689C213.926 132.977 206.927 136.157 199.293 136.157ZM205.416 116.912C214.387 116.912 221.66 109.024 221.66 99.2941C221.66 89.5642 214.387 81.6766 205.416 81.6766C196.444 81.6766 189.171 89.5642 189.171 99.2941C189.171 109.024 196.444 116.912 205.416 116.912Z" fill="white"/>
+<path d="M363.782 95.2002V134.348H341.794V34.901H403.081V56.3258H363.782V74.1455H394.745V95.2002H363.782Z" fill="white"/>
+<path d="M431.282 134.655H410.353V64.6583H431.282V74.8396C431.282 74.8396 434.904 67.837 439.774 65.36C446.179 62.1024 454.755 64.6583 454.755 64.6583V85.8693C454.755 85.8693 443.825 82.1336 438.493 85.4479C430.212 90.5965 431.282 99.303 431.282 99.303V134.655Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M121.868 136.157C142.335 136.157 158.927 119.685 158.927 99.3667C158.927 79.0482 142.335 62.5769 121.868 62.5769C101.401 62.5769 84.8088 79.0482 84.8088 99.3667C84.8088 119.685 101.401 136.157 121.868 136.157ZM122.024 116.376C130.816 116.376 137.943 108.76 137.943 99.3667C137.943 89.9729 130.816 82.3578 122.024 82.3578C113.232 82.3578 106.104 89.9729 106.104 99.3667C106.104 108.76 113.232 116.376 122.024 116.376Z" fill="#ED3024"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M618.536 104.278H564.344C564.344 104.278 566.438 117.659 579.946 117.659C593.453 117.659 595.363 111.442 595.363 111.442H616.987C616.987 111.442 610.231 136.123 579.946 136.123C564.408 136.123 543.593 123.462 543.593 99.9943C543.593 76.527 561.122 63.3304 579.946 63.3304C620.616 63.3304 618.536 104.278 618.536 104.278ZM579.946 79.2336C567.876 79.2336 564.344 91.0375 564.344 91.0375H595.547C595.547 91.0375 592.015 79.2336 579.946 79.2336Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M534.67 104.278H480.478C480.478 104.278 482.572 117.659 496.079 117.659C509.587 117.659 511.497 111.442 511.497 111.442H533.12C533.12 111.442 526.365 136.123 496.079 136.123C480.542 136.123 459.727 123.462 459.727 99.9943C459.727 76.527 477.255 63.3304 496.079 63.3304C536.75 63.3304 534.67 104.278 534.67 104.278ZM496.079 79.2336C484.01 79.2336 480.478 91.0375 480.478 91.0375H511.681C511.681 91.0375 508.149 79.2336 496.079 79.2336Z" fill="white"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M328.151 104.278H273.96C273.96 104.278 276.054 117.659 289.561 117.659C303.068 117.659 304.979 111.442 304.979 111.442H326.602C326.602 111.442 319.846 136.123 289.561 136.123C274.024 136.123 253.208 123.462 253.208 99.9943C253.208 76.527 270.737 63.3304 289.561 63.3304C330.232 63.3304 328.151 104.278 328.151 104.278ZM289.561 79.2336C277.492 79.2336 273.96 91.0375 273.96 91.0375H305.163C305.163 91.0375 301.631 79.2336 289.561 79.2336Z" fill="white"/>
+<path d="M150.29 23.1412C133.972 17.5985 113.454 13.4928 86.675 26.8825L78.0421 10.2572C109.713 -4.62263 135.62 -0.797841 155.664 6.01033C165.589 9.38148 181.978 19.0062 186.358 24.4413L186.357 11.7638C186.357 11.7638 188.334 5.01022 195.643 5.01022C202.952 5.01022 204.268 11.7638 204.268 11.7638V56.4306H160.669C160.669 56.4306 153.192 55.0623 153.192 47.2143C153.192 39.3663 160.669 37.1946 160.669 37.1946H174.056C169.488 34.3082 157.712 25.6621 150.29 23.1412Z" fill="#ED3024"/>
+<path d="M188.37 147.301C172.23 169.684 145.28 181.256 121.679 181.256C98.0782 181.256 77.218 167.496 72.6503 164.61H83.6157C83.6157 164.61 91.0929 162.438 91.0929 154.59C91.0929 146.742 83.6157 145.374 83.6157 145.374H40.017V190.041C40.017 190.041 41.3327 196.794 48.6418 196.794C55.9508 196.794 57.928 190.041 57.928 190.041L57.9267 177.363C62.3072 182.798 95.3375 199.984 121.679 199.984C148.02 199.984 180.3 188.412 202.987 157.807L188.37 147.301Z" fill="#ED3024"/>
+</svg>
+        </div>
+        <div class="text-gray-400 text-sm hidden md:block">
+            <img height="40" width="130" src="https://static.wixstatic.com/media/83920e_8c578f01bcb74323af746019509e5f2e~mv2.png/v1/fill/w_380,h_110,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/CLAUT%20Blanco%20Horizontal.png" alt="CLAUT Logo" onerror="this.style.display='none'" />
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow relative px-6 md:px-16 pt-8 w-full max-w-7xl mx-auto">
+        <!-- Dynamic Page Number (Fixed layout overlay - strictly non-scrollable) -->
+        <div id="fixed-slide-number" class="absolute bottom-4 right-6 md:right-16 text-[11px] font-mono text-gray-500 font-bold uppercase tracking-widest hidden md:block z-40 pointer-events-none">DIAPOSITIVA 1 / 23</div>
+
+        <!-- 1. Title Slide -->
+        <div class="slide active" id="slide-1">
+            <div class="flex flex-col justify-center h-full text-center md:text-left">
+                <p class="text-cyan-400 text-lg md:text-xl font-semibold tracking-widest uppercase mb-4">Presentación Ejecutiva</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">La Nueva Era de la <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-red-300">Inteligencia Artificial</span></h1>
+                <p class="text-2xl md:text-3xl text-gray-300 mb-8 max-w-3xl">Perspectivas, riesgos y oportunidades para la industria de proveeduría automotriz.</p>
+                
+                <div class="mt-12 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-8 sm:gap-16">
+                    <!-- Presentador 1 -->
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-600 shadow-inner overflow-hidden relative">
+                            <img id="presenter-img-small" src="" alt="Roberto Treviño" class="w-full h-full object-cover hidden absolute inset-0 z-10" />
+                            <i id="presenter-icon-small" class="fa-solid fa-user-tie text-2xl text-gray-400 z-0"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-xl md:text-2xl font-bold">Roberto Treviño</p>
+                            <p class="text-base md:text-lg text-gray-400">Managing Partner USA, KodeFree</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Presentador 2 -->
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-gray-800 rounded-full flex items-center justify-center border-2 border-purple-500/50 shadow-inner overflow-hidden relative">
+                            <img id="presenter2-img-small" src="" alt="Iván Fernández" class="w-full h-full object-cover hidden absolute inset-0 z-10" />
+                            <i id="presenter2-icon-small" class="fa-solid fa-laptop-code text-2xl text-purple-400 z-0"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-xl md:text-2xl font-bold">Iván Fernández</p>
+                            <p class="text-base md:text-lg text-gray-400">Chief Commercial Officer, KodeFree</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Agenda -->
+        <div class="slide" id="slide-2">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8 border-b border-gray-700 pb-4">Agenda</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6 text-lg md:text-xl text-gray-300">
+                    <div class="flex items-start gap-4"><div class="text-red-500 mt-1"><i class="fa-solid fa-circle-dot"></i></div>
+                        <div><strong class="text-white text-xl md:text-2xl">1. Introducción KodeFree</strong><br>Los expositores y nuestra ventaja competitiva.</div>
+                    </div>
+                    <div class="flex items-start gap-4"><div class="text-red-500 mt-1"><i class="fa-solid fa-circle-dot"></i></div>
+                        <div><strong class="text-white text-xl md:text-2xl">2. El Landscape Actual</strong><br>El ecosistema, Hype Curve y ejemplos reales de la industria.</div>
+                    </div>
+                    <div class="flex items-start gap-4"><div class="text-red-500 mt-1"><i class="fa-solid fa-circle-dot"></i></div>
+                        <div><strong class="text-white text-xl md:text-2xl">3. Cambio de Paradigma y Costos</strong><br>Empoderamiento vs. Reemplazo, y el riesgo de inacción.</div>
+                    </div>
+                </div>
+                <div class="space-y-6 text-lg md:text-xl text-gray-300">
+                    <div class="flex items-start gap-4"><div class="text-red-500 mt-1"><i class="fa-solid fa-circle-dot"></i></div>
+                        <div><strong class="text-white text-xl md:text-2xl">4. La Visión de KodeFree</strong><br>Curva de madurez analítica y Agentes de IA.</div>
+                    </div>
+                    <div class="flex items-start gap-4"><div class="text-red-500 mt-1"><i class="fa-solid fa-circle-dot"></i></div>
+                        <div><strong class="text-white text-xl md:text-2xl">5. Casos de Uso Automotrices</strong><br>Interacción con datos, segmentación, retención y KYC.</div>
+                    </div>
+                    <div class="flex items-start gap-4"><div class="text-red-500 mt-1"><i class="fa-solid fa-circle-dot"></i></div>
+                        <div><strong class="text-white text-xl md:text-2xl">6. Cómo Empezar</strong><br>Accelerated Value Program (8 semanas).</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		
+		<!-- 3. Acerca de los Expositores -->
+        <div class="slide" id="slide-3">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Acerca de los Expositores</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                
+                <!-- Expositor 1: Roberto Treviño -->
+                <div class="glass-panel p-6 border-t-4 border-t-red-500 bg-gray-900/40 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <!-- Encabezado de Perfil -->
+                        <div class="flex items-center gap-4 mb-5 pb-4 border-b border-gray-800">
+                            <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-700 shadow-inner overflow-hidden relative shrink-0">
+                                <img id="presenter-img" src="" alt="Roberto Treviño" class="w-full h-full object-cover hidden absolute inset-0 z-10 transition-opacity duration-500" />
+                                <i id="presenter-icon" class="fa-solid fa-user-tie text-4xl text-gray-400 z-0"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl md:text-3xl font-bold text-white leading-tight">Roberto Treviño</h3>
+                                <span class="bg-cyan-500/10 text-cyan-400 text-sm border border-cyan-500/30 px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider mt-1.5 inline-block">Managing Partner USA</span>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Snippets Informativos -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Años en la industria -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-business-time text-red-500 mr-1.5"></i>Experiencia</span>
+                                <p class="text-sm md:text-base font-semibold text-gray-200">19+ Años en la Industria</p>
+                            </div>
+                            <!-- Ubicación -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-map-location-dot text-red-500 mr-1.5"></i>Ubicación</span>
+                                <p class="text-sm md:text-base font-semibold text-gray-200">DC, USA</p>
+                            </div>
+                            <!-- Industrias servidas -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60 sm:col-span-2">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-industry text-red-500 mr-1.5"></i>Sectores Clave</span>
+                                <p class="text-sm md:text-base font-semibold text-gray-200">Retail, Auto, Finance/Banking, Gaming, B2B</p>
+                            </div>
+                            <!-- Formación académica -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60 sm:col-span-2">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-graduation-cap text-red-500 mr-1.5"></i>Formación Académica</span>
+                                <ul class="text-sm text-gray-300 space-y-1">
+                                    <li>• <strong class="text-white">M.S. Data Analytics Engineering</strong> - George Mason University, USA.</li>
+                                    <li>• <strong class="text-white">Ing. Mecatrónica</strong> - ITESM (Tec de Monterrey), MX.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-800/60 text-right">
+                        <a href="mailto:rt@kodefree.com" target="_blank" class="text-sm text-cyan-400 hover:text-white transition inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-envelope"></i> rt@kodefree.com
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Expositor 2: Iván Fernández -->
+                <div class="glass-panel p-6 border-t-4 border-t-purple-500 bg-gray-900/40 shadow-xl flex flex-col justify-between">
+                    <div>
+                        <!-- Encabezado de Perfil -->
+                        <div class="flex items-center gap-4 mb-5 pb-4 border-b border-gray-800">
+                            <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-700 shadow-inner overflow-hidden relative shrink-0">
+                                <img id="presenter2-img" src="" alt="Iván Fernández" class="w-full h-full object-cover hidden absolute inset-0 z-10 transition-opacity duration-500" />
+                                <i id="presenter2-icon" class="fa-solid fa-laptop-code text-4xl text-gray-400 z-0"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl md:text-3xl font-bold text-white leading-tight">Iván Fernández</h3>
+                                <span class="bg-purple-500/10 text-purple-400 text-sm border border-purple-500/30 px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider mt-1.5 inline-block">Chief Commercial Officer</span>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Snippets Informativos -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Años en la industria -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-business-time text-purple-400 mr-1.5"></i>Experiencia</span>
+                                <p class="text-sm md:text-base font-semibold text-gray-200">10+ Años en Consultoría</p>
+                            </div>
+                            <!-- Ubicación -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-map-location-dot text-purple-400 mr-1.5"></i>Ubicación</span>
+                                <p class="text-sm md:text-base font-semibold text-gray-200">CDMX, México</p>
+                            </div>
+                            <!-- Industrias servidas -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60 sm:col-span-2">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-industry text-purple-400 mr-1.5"></i>Sectores Clave</span>
+                                <p class="text-sm md:text-base font-semibold text-gray-200">Automotriz, Logística, Fintech, CPG, Retail</p>
+                            </div>
+                            <!-- Formación académica -->
+                            <div class="bg-slate-950/40 p-3 rounded-lg border border-gray-800/60 sm:col-span-2">
+                                <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1"><i class="fa-solid fa-graduation-cap text-purple-400 mr-1.5"></i>Formación Académica</span>
+                                <ul class="text-sm text-gray-300 space-y-1">
+                                    <li>• <strong class="text-white">Ing. Transformación de Negocios</strong> - ITESM (Tec de Monterrey), MX.</li>
+                                    <li>• <strong class="text-white">Business Administration</strong> - ESSEC Business School</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-800/60 text-right">
+                        <a href="mailto:if@kodefree.com" target="_blank" class="text-sm text-purple-400 hover:text-white transition inline-flex items-center gap-1.5 font-semibold">
+                            <i class="fa-solid fa-envelope"></i> if@kodefree.com
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 4. Quiénes Somos (KodeFree) -->
+        <div class="slide" id="slide-4">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">¿Quiénes Somos?</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 font-semibold">El Aliado Estratégico en Transformación de Datos</h3>
+            <p class="text-lg md:text-xl text-gray-300 mb-8 font-normal">KodeFree es una firma de servicios profesionales especializada en entregar soluciones centradas en datos, de alto impacto y orientadas a resultados para corporaciones globales.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Offerings -->
+                <div class="glass-panel p-6 border-t-4 border-t-red-500 flex flex-col justify-center">
+                    <h4 class="font-bold text-white mb-4 uppercase tracking-wider text-sm md:text-base"><i class="fa-solid fa-layer-group text-red-400 mr-2"></i>Nuestras Soluciones Base</h4>
+                    <ul class="space-y-3 text-sm md:text-base text-gray-300">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0"></i><div><strong>Data Strategy & Governance:</strong> Gobernanza y estrategia sólida alrededor de sus datos para reducir mantenimientos.</div></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0"></i><div><strong>Data Platforms & Analytics IQ:</strong> Acceso rápido sobre plataformas probadas (Snowflake, Databricks) para tomar decisiones informadas.</div></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0"></i><div><strong>Enterprise Smart Apps:</strong> Aplicaciones customizadas y flujos de trabajo (workflows) para sus procesos de negocio únicos.</div></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0"></i><div><strong>Applied AI & Machine Learning:</strong> Resolución de retos complejos, aumento de eficiencia y desbloqueo de flujos de ingresos con IA.</div></li>
+                    </ul>
+                </div>
+                
+                <!-- Why KodeFree / Nearshore -->
+                <div class="glass-panel p-6 border-t-4 border-t-cyan-500 flex flex-col justify-top bg-cyan-950/10 align-top">
+                    <h4 class="font-bold text-white mb-4 uppercase tracking-wider text-sm md:text-base"><i class="fa-solid fa-globe text-cyan-400 mr-2"></i>Ventaja Competitiva</h4>
+                    <ul class="space-y-3 text-sm md:text-base text-gray-300">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-cyan-500 mt-0.5 shrink-0"></i><div><strong>Clientes Internacionales e Nacionales:</strong> Entendemos el ecosistema local y las tecnologías de punta globales.</div></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-cyan-500 mt-0.5 shrink-0"></i><div><strong>Talento Top STEM:</strong> Vinculación directa con el Tec (ITESM) para la captación de talento top ingenieril.</div></li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-cyan-500 mt-0.5 shrink-0"></i><div><strong>DAMA:</strong> Socios activos de Data Administration Management Association (DAMA) para mejores prácticas.</div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Clients -->
+            <div class="glass-panel p-5 bg-gray-800/30 border-l-4 border-l-gray-500">
+                <h4 class="font-bold text-gray-400 mb-3 uppercase tracking-wider text-xs md:text-sm">Confían en nosotros:</h4>
+                <div class="flex flex-wrap gap-x-6 gap-y-2 items-center justify-center text-gray-300 font-bold text-base md:text-lg opacity-80">
+                    <span>Ford</span> &bull; <span>Pfizer</span> &bull; <span>Santander</span> &bull; <span>Coca-Cola</span> &bull; <span>Mondelēz</span> &bull; <span>Texas Capital Bank</span> &bull; <span>Danone</span> &bull; <span>Alcon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Ecosistema de Proveedores -->
+        <div class="slide" id="slide-5">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Ecosistema y Habilitadores de Mercado</h2>
+            <p class="text-lg md:text-xl text-gray-400 mb-6 font-normal">El mapa integral de la infraestructura y proveedores de Inteligencia Artificial.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- 01 Compute & Cloud -->
+                <div class="glass-panel p-6 flex-grow flex flex-col">
+                    <h3 class="text-cyan-400 font-bold mb-4 uppercase text-sm md:text-base tracking-wider border-b border-gray-700 pb-2">01: Compute & Cloud</h3>
+                    <ul class="space-y-3 text-sm md:text-base">
+                        <li><i class="fa-solid fa-microchip text-green-500 mr-2"></i> NVIDIA</li>
+                        <li><i class="fa-brands fa-microsoft text-blue-400 mr-2"></i> Microsoft (Azure)</li>
+                        <li><i class="fa-brands fa-google text-red-400 mr-2"></i> Google (GCP)</li>
+                        <li><i class="fa-brands fa-aws text-orange-400 mr-2"></i> Amazon (AWS)</li>
+                    </ul>
+                </div>
+
+                <!-- 02 Data Platforms & 03 Models (Stacked above 04) -->
+                <div class="lg:col-span-2 flex flex-col gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 02 Data Platforms -->
+                        <div class="glass-panel p-6">
+                            <h3 class="text-cyan-400 font-bold mb-4 uppercase text-sm md:text-base tracking-wider border-b border-gray-700 pb-2">02: Data Platforms</h3>
+                            <ul class="space-y-3 text-sm md:text-base">
+                                <li><i class="fa-solid fa-snowflake text-blue-300 mr-2"></i> Snowflake</li>
+                                <li><i class="fa-solid fa-cubes text-red-500 mr-2"></i> Databricks</li>
+                                <li><i class="fa-solid fa-layer-group text-blue-500 mr-2"></i> Fabric (Microsoft)</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 03 Proveedores de Modelos -->
+                        <div class="glass-panel p-6">
+                            <h3 class="text-cyan-400 font-bold mb-4 uppercase text-sm md:text-base tracking-wider border-b border-gray-700 pb-2">03: Proveedores de Modelos</h3>
+                            <ul class="space-y-3 text-sm md:text-base">
+                                <li><i class="fa-solid fa-brain text-purple-400 mr-2"></i> Anthropic</li>
+                                <li><i class="fa-solid fa-robot text-teal-400 mr-2"></i> OpenAI</li>
+                                <li><i class="fa-brands fa-google text-red-400 mr-2"></i> Google (Gemini)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 04 Analytica y Aplicaciones -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-cyan-400 font-bold mb-4 uppercase text-sm md:text-base tracking-wider border-b border-gray-700 pb-2">04: Analítica y Aplicaciones</h3>
+                        <div class="flex flex-wrap gap-4 text-sm md:text-base">
+                            <span class="bg-gray-800 px-3 py-1 rounded"><i class="fa-solid fa-chart-line mr-1 text-purple-400"></i> Sigma Computing</span>
+                            <span class="bg-gray-800 px-3 py-1 rounded"><i class="fa-solid fa-chart-bar mr-1 text-yellow-500"></i> Power BI</span>
+                            <span class="bg-gray-800 px-3 py-1 rounded"><i class="fa-solid fa-table mr-1 text-blue-400"></i> Tableau</span>
+                            <span class="bg-gray-800 px-3 py-1 rounded"><i class="fa-solid fa-network-wired mr-1 text-orange-400"></i> n8n</span>
+                            <span class="bg-gray-800 px-3 py-1 rounded"><i class="fa-solid fa-chart-pie mr-1 text-green-400"></i> Looker</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Introducción a IA -->
+        <div class="slide" id="slide-6">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Introducción a la Inteligencia Artificial</h2>
+            <div class="glass-panel p-8">
+                <p class="text-xl md:text-2xl leading-relaxed text-gray-200 mb-6 font-normal">
+                    En términos organizacionales, la IA ya no representa una visión conceptual de futuro. Es un portafolio de tecnologías diseñadas para realizar tareas que históricamente requerían intervención humana, segmentadas en tres grandes pilares operativos:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <!-- Machine Learning con ejemplos -->
+                    <div class="border-l-4 border-gray-500 pl-4 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg md:text-xl mb-2 text-white">Machine Learning</h4>
+                            <p class="text-sm md:text-base text-gray-400 mb-4">Modelos matemáticos que aprenden de datos históricos para predecir, clasificar o automatizar procesos rutinarios de negocio.</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-3.5 rounded-lg border border-gray-800 text-sm md:text-base text-gray-300 space-y-2 mt-2">
+                            <span class="font-bold text-cyan-400 block uppercase tracking-wider text-xs md:text-sm">Ejemplos en Planta:</span>
+                            <p class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-gray-500 mt-0.5 shrink-0"></i> <span>Pronóstico preciso de demanda para optimizar inventarios mínimos dinámicos.</span></p>
+                            <p class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-gray-500 mt-0.5 shrink-0"></i> <span>Algoritmos predictivos de tiempos de entrega logísticos (ETAs).</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Deep Learning con ejemplos -->
+                    <div class="border-l-4 border-cyan-500 pl-4 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg md:text-xl mb-2 text-cyan-400">Deep Learning</h4>
+                            <p class="text-sm md:text-base text-gray-400 mb-4">Redes neuronales complejas ideales para procesar datos biométricos, espaciales y sensoriales en entornos industriales.</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-3.5 rounded-lg border border-gray-800 text-sm md:text-base text-gray-300 space-y-2 mt-2">
+                            <span class="font-bold text-cyan-400 block uppercase tracking-wider text-xs md:text-sm">Ejemplos en Planta:</span>
+                            <p class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-cyan-500 mt-0.5 shrink-0"></i> <span>Visión artificial para detectar micro-defectos de soldadura en milisegundos.</span></p>
+                            <p class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-cyan-500 mt-0.5 shrink-0"></i> <span>Monitoreo acústico predictivo en motores para evitar paros.</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Generative AI con ejemplos -->
+                    <div class="border-l-4 border-red-500 pl-4 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg md:text-xl mb-2 text-red-400">Generative AI</h4>
+                            <p class="text-sm md:text-base text-gray-400 mb-4">Sistemas cognitivos capaces de razonar, procesar y resumir fuentes de lenguaje natural y crear información nueva.</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-3.5 rounded-lg border border-gray-800 text-sm md:text-base text-gray-300 space-y-2 mt-2">
+                            <span class="font-bold text-cyan-400 block uppercase tracking-wider text-xs md:text-sm">Ejemplos en Planta:</span>
+                            <p class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-red-500 mt-0.5 shrink-0"></i> <span>Agentes que extraen requerimientos complejos de contratos y RFPs.</span></p>
+                            <p class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-red-500 mt-0.5 shrink-0"></i> <span>Búsquedas en lenguaje natural ("Talk to your Data") en el ERP.</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. El Boom de la IA: ¿Por qué ahora? -->
+        <div class="slide" id="slide-7">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">El Boom de la IA: ¿Por qué de repente?</h2>
+            <div class="glass-panel p-6 mb-6 border-l-4 border-kf-red bg-gray-900/40">
+                <p class="text-lg md:text-xl text-gray-200 font-normal">
+                    La Inteligencia Artificial se estudia teóricamente desde los años 50. Sin embargo, pareciera que estalló como una revolución absoluta de la noche a la mañana. <strong>¿Qué fue lo que cambió?</strong> La convergencia perfecta de dos grandes catalizadores que rompieron barreras históricas:
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Catalyst 1: ChatGPT -->
+                <div class="glass-panel p-6 border-t-4 border-cyan-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4 border-b border-gray-700 pb-3">
+                            <div class="w-12 h-12 rounded-lg bg-cyan-900/30 flex items-center justify-center border border-cyan-500/50 shrink-0">
+                                <i class="fa-regular fa-comments text-2xl text-cyan-400"></i>
+                            </div>
+                            <h3 class="text-xl md:text-2xl font-bold text-white leading-tight">1. La Revolución de la Interfaz<br><span class="text-sm md:text-base font-normal text-cyan-400 tracking-wider uppercase">El Efecto ChatGPT (Nov. 2022)</span></h3>
+                        </div>
+                        <p class="text-sm md:text-base text-gray-300 leading-relaxed mb-4">
+                            Lograr que una máquina "comprendiera" verdaderamente el lenguaje humano era algorítmicamente prohibitivo. El lanzamiento de GPT-3.5 (ChatGPT) demostró el éxito rotundo de la arquitectura <em>Transformer</em>. De la noche a la mañana, la adopción se disparó al elimin la fricción técnica.
+                        </p>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700 mt-auto">
+                        <p class="text-sm md:text-base text-gray-300"><i class="fa-solid fa-check text-cyan-500 mr-2"></i><strong>El cambio:</strong> El lenguaje natural (hablar/escribir) se convirtió en la nueva interfaz universal, reemplazando la barra de programar en código complejo.</p>
+                    </div>
+                </div>
+
+                <!-- Catalyst 2: NVIDIA & Compute -->
+                <div class="glass-panel p-6 border-t-4 border-green-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-4 border-b border-gray-700 pb-3">
+                            <div class="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center border border-green-500/50 shrink-0">
+                                <i class="fa-solid fa-microchip text-2xl text-green-400"></i>
+                            </div>
+                            <h3 class="text-xl md:text-2xl font-bold text-white leading-tight">2. El Poder de Cómputo<br><span class="text-sm md:text-base font-normal text-green-400 tracking-wider uppercase">NVIDIA & Procesamiento Paralelo</span></h3>
+                        </div>
+                        <p class="text-sm md:text-base text-gray-300 leading-relaxed mb-4">
+                            Los Modelos Grandes de Lenguaje (LLMs) requieren calcular probabilidades simultáneas entre cientos de miles de millones de parámetros, un cuello de botella físico insuperable para los procesadores tradicionales (CPUs).
+                        </p>
+                    </div>
+                    <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700 mt-auto">
+                        <p class="text-sm md:text-base text-gray-300"><i class="fa-solid fa-check text-green-500 mr-2"></i><strong>El cambio:</strong> NVIDIA habilitó clusters masivos de GPUs (unidades gráficas) para procesamiento paralelo, reduciendo el entrenamiento de IA de años a semanas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Ejemplos Industria Automotriz -->
+        <div class="slide" id="slide-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-1">Casos Reales en la Industria</h2>
+                    <p class="text-sm md:text-base text-gray-400 font-normal">Validación del valor real y estratégico de la IA en la manufactura de automoción global.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- GM -->
+                <div class="glass-panel overflow-hidden flex flex-col border-t-4 border-t-cyan-500">
+                    <div class="h-40 bg-cover bg-center" style="background-image: url('https://di-uploads-pod40.dealerinspire.com/patriotchevyofwarminster/uploads/2023/09/2024-chevrolet-corvette-e-ray-hy-1536x864.png');"></div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold mb-1">General Motors</h3>
+                            <p class="text-sm text-cyan-400 mb-3 uppercase tracking-wider font-semibold">Diseño Generativo & Autodesk</p>
+                            <p class="text-sm md:text-base text-gray-300">Algoritmos evaluaron miles de permutaciones geométricas para un soporte de asiento crítico. Consolidaron 8 piezas en 1 estructura.</p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center text-sm md:text-base">
+                            <span class="text-green-400 font-bold"><i class="fa-solid fa-arrow-trend-down mr-1"></i>-40% Peso / +20% Resistencia</span>
+                            <a href="https://www.autodesk.com/customer-stories/general-motors" target="_blank" class="text-blue-400 hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Fuente</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- BMW -->
+                <div class="glass-panel overflow-hidden flex flex-col border-t-4 border-t-blue-500">
+                    <div class="h-40 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=500&q=80');"></div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold mb-1">BMW Group</h3>
+                            <p class="text-sm text-blue-400 mb-3 uppercase tracking-wider font-semibold">Mantenimiento Predictivo</p>
+                            <p class="text-sm md:text-base text-gray-300">Monitoreo con Machine Learning en la planta de Regensburg para sistemas transportadores automatizados y robótica de ensamblado.</p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center text-sm md:text-base">
+                            <span class="text-green-400 font-bold"><i class="fa-solid fa-clock mr-1"></i>-500 min Downtime/Año</span>
+                            <a href="https://www.press.bmwgroup.com/global/article/detail/T0412217EN/artificial-intelligence-at-bmw-group-production" target="_blank" class="text-blue-400 hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Fuente</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOSCH -->
+                <div class="glass-panel overflow-hidden flex flex-col border-t-4 border-t-red-500">
+                    <div class="h-40 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=500&q=80');"></div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-bold mb-1">Bosch</h3>
+                            <p class="text-sm text-red-400 mb-3 uppercase tracking-wider font-semibold">Visión & Datos Sintéticos</p>
+                            <p class="text-sm md:text-base text-gray-300">Uso de IA generativa para simular fallas ópticas raras, acelerando drásticamente el entrenamiento de sus cámaras de inspección.</p>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-700 flex justify-between items-center text-sm md:text-base">
+                            <span class="text-green-400 font-bold"><i class="fa-solid fa-bolt mr-1"></i>Ramp-up a 6 meses</span>
+                            <a href="https://www.bosch-presse.de/pressportal/de/en/bosch-uses-generative-ai-in-manufacturing-262720.html" target="_blank" class="text-blue-400 hover:underline"><i class="fa-solid fa-arrow-up-right-from-square"></i> Fuente</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. GenAI y Hype Curve -->
+        <div class="slide" id="slide-9">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">El Estado Actual: Gartner Hype Cycle</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 text-sm md:text-base text-gray-300 space-y-3">
+                    <p class="text-base md:text-lg font-semibold text-cyan-400">Transición al "Abismo de la Desilusión".</p>
+                    <p>La adopción masiva impulsada por la euforia inicial ha concluido. El mercado exige pasar de experimentos aislados a sistemas robustos con retorno medible.</p>
+                    
+                    <div class="bg-slate-800/60 p-3 rounded-lg border border-gray-700 space-y-1.5 text-xs md:text-sm">
+                        <p class="font-bold text-white uppercase tracking-wider text-xs"><i class="fa-solid fa-list-ol text-red-400 mr-1"></i>Etapas Clave de Gartner:</p>
+                        <p><strong>1. Lanzamiento:</strong> Aparición pública de la tecnología.</p>
+                        <p><strong>2. Expectativas:</strong> Pico de sobre-promesas.</p>
+                        <p><strong>3. Abismo de Desilusión:</strong> Los prototipos fallan al escalar.</p>
+                        <p><strong>4. Consolidación:</strong> Comprensión real e ingeniería seria.</p>
+                        <p><strong>5. Productividad:</strong> Adopción estable con ROI estandarizado.</p>
+                    </div>
+
+                    <a href="https://www.gartner.com/en/newsroom/press-releases/2024-08-21-gartner-2024-hype-cycle-for-emerging-technologies" target="_blank" class="inline-block text-sm text-blue-400 hover:text-blue-300 underline"><i class="fa-solid fa-external-link-alt mr-1"></i> Ver Metodología Oficial Gartner</a>
+                </div>
+                
+                <!-- Gráfico de Gartner -->
+                <div class="lg:col-span-5 glass-panel p-6 h-[260px] flex items-center justify-center relative">
+                    <svg viewBox="100 0 600 400" class="w-full h-full drop-shadow-lg">
+                        <path d="M 50 350 C 150 350, 200 50, 300 50 C 400 50, 450 340, 550 340 C 650 340, 680 200, 750 200" fill="none" stroke="#475569" stroke-width="4" stroke-dasharray="8 4"></path>
+                        <path d="M 50 350 C 150 350, 200 50, 300 50 C 350 50, 390 260, 430 280" fill="none" stroke="#E63946" stroke-width="6"></path>
+                        
+                        <circle cx="430" cy="280" r="10" fill="#06b6d4"></circle>
+                        <text x="430" y="315" fill="white" font-size="30" font-weight="bold" text-anchor="middle">Generative AI Actual</text>
+                        
+                        <text x="300" y="30" fill="#94a3b8" font-size="24" text-anchor="middle">Pico de Expectativas</text>
+                        <text x="550" y="370" fill="#94a3b8" font-size="24" text-anchor="middle">Abismo de Desilusión</text>
+                        <text x="740" y="180" fill="#94a3b8" font-size="24" text-anchor="end">Meseta de Productividad</text>
+                    </svg>
+                </div>
+
+           
+                
+                
+            </div>
+            
+            <!-- Caja de KodeFree -->
+            <div class="mt-4 glass-panel p-5 border-l-4 border-l-cyan-500 bg-cyan-950/20">
+                <h4 class="text-base md:text-lg font-bold text-white mb-1"><i class="fa-solid fa-handshake-angle text-cyan-400 mr-2"></i>¿Cómo ayuda KodeFree?</h4>
+                <p class="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Guiamos a las organizaciones a cruzar de forma segura el *Abismo de la Desilusión* mediante el diseño de arquitecturas de datos sólidas, evitando inversiones desordenadas y construyendo soluciones con un <span class="text-cyan-400 font-bold">modelo estructurado y gobernado</span> de alto retorno empresarial.
+                </p>
+            </div>
+        </div>
+
+        <!-- 10. El Costo de No Hacer Nada -->
+        <div class="slide" id="slide-10">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6 text-red-400">El Costo de No Hacer Nada</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Riesgos Operativos y OEM -->
+                <div class="glass-panel p-6 border-t-4 border-red-600 space-y-3">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-car-crash text-2xl text-red-500"></i>
+                        <h3 class="text-xl md:text-2xl font-bold">Pérdida de Programas OEM</h3>
+                    </div>
+                    <p class="text-sm md:text-base text-gray-300 leading-relaxed">Los fabricantes automotrices (OEMs) están requiriendo que su proveeduría integre esquemas inteligentes de predicción. Las empresas que carezcan de capacidades para habilitar APIs de datos o flujos analíticos automatizados corren el riesgo de perder contratos frente a competidores digitalizados.</p>
+                </div>
+
+                <!-- Riesgos Regulatorios y Fiscales -->
+                <div class="glass-panel p-6 border-t-4 border-orange-500 space-y-3">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fa-solid fa-file-signature text-2xl text-orange-400"></i>
+                        <h3 class="text-xl md:text-2xl font-bold">Riesgos Regulatorios y Fiscales</h3>
+                    </div>
+                    <p class="text-sm md:text-base text-gray-300 leading-relaxed">Las aduanas y auditorías fiscales (SAT, IRS) exigen una estricta validación documental de pedimentos. La falta de herramientas inteligentes de automatización e indexación incrementa exponencialmente los errores manuales y la exposición a malentendidos y multas arancelarias severas.</p>
+                </div>
+            </div>
+
+            <!-- Pérdida Acelerada de Competitividad -->
+            <div class="glass-panel p-6 border-l-4 border-red-500 bg-gray-800/30 flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-3 md:mb-0 max-w-xl">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-200"><i class="fa-solid fa-triangle-exclamation text-red-400 mr-2"></i>Pérdida Acelerada de Competitividad</h3>
+                    <p class="text-sm md:text-base text-gray-300 mt-1">Las organizaciones que retrasen su adopción tecnológica serán rápidamente <span class="text-red-400 font-bold">superadas y rezagadas</span> por competidores que ya optimizan sus costos, calidad y velocidad operativa con modelos de IA activos.</p>
+                </div>
+                <div class="text-sm md:text-base text-gray-300 space-y-1 md:text-right">
+                    <p></p>
+                    <p class="text-xs text-gray-500 italic"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. Cambio de Paradigma -->
+        <div class="slide" id="slide-11">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Cambio de Paradigma</h2>
+            <p class="text-xl md:text-2xl text-gray-300 mb-8">De <span class="line-through text-red-400">"Nos va a reemplazar"</span> a <span class="text-cyan-400 font-semibold">"Cómo nos empodera"</span>.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Old Way -->
+                <div class="glass-panel p-8 border-l-4 border-l-red-500 flex flex-col h-full justify-center">
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-400 mb-6 uppercase tracking-wider flex items-center min-h-[40px]"><i class="fa-solid fa-times-circle mr-3 text-red-500 text-2xl"></i>El Modelo Anterior</h3>
+                    <ul class="space-y-5 text-base md:text-lg text-gray-400 flex-grow leading-relaxed">
+                        <li><i class="fa-solid fa-arrow-right mr-3 text-red-500"></i> Decisiones basadas en intuición ejecutiva y muestras históricas.</li>
+                        <li><i class="fa-solid fa-arrow-right mr-3 text-red-500"></i> Personal clave consumido en tareas manuales de extracción de datos.</li>
+                        <li><i class="fa-solid fa-arrow-right mr-3 text-red-500"></i> Auditorías correctivas (reaccionar al fallo de calidad en el OEM).</li>
+                        <li><i class="fa-solid fa-arrow-right mr-3 text-red-500"></i> Procesos operativos desconectados y silos informáticos herméticos.</li>
+                    </ul>
+                </div>
+                
+                <!-- AI Way -->
+                <div class="glass-panel p-8 border-l-4 border-l-cyan-500 bg-gray-800/40 flex flex-col h-full justify-center">
+                    <h3 class="text-xl md:text-2xl font-bold text-cyan-400 mb-6 uppercase tracking-wider flex items-center min-h-[40px]"><i class="fa-solid fa-check-circle mr-3 text-cyan-500 text-2xl"></i>El Modelo con IA & Agentes</h3>
+                    <ul class="space-y-5 text-base md:text-lg text-gray-200 flex-grow leading-relaxed">
+                        <li><i class="fa-solid fa-bolt mr-3 text-cyan-500"></i> Visibilidad analítica del 100% del piso de producción en tiempo real.</li>
+                        <li><i class="fa-solid fa-bolt mr-3 text-cyan-500"></i> Ingenieros enfocados en diseño estratégico y optimización.</li>
+                        <li><i class="fa-solid fa-bolt mr-3 text-cyan-500"></i> Alertas de prevención automatizadas que mitigan el defecto a tiempo.</li>
+                        <li><i class="fa-solid fa-bolt mr-3 text-cyan-500"></i> Datos unificados listos para alimentar automatizaciones en la nube.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 12. Madurez Analítica -->
+        <div class="slide" id="slide-12">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">La Curva de Madurez Analítica</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="glass-panel p-3.5 border-l-4 border-gray-500 bg-gray-800/20">
+                        <h4 class="font-bold text-white text-base md:text-lg">1. Descriptivo</h4>
+                        <p class="text-sm md:text-base text-gray-400 mt-1">¿Qué pasó? Reporteo del histórico operativo y dashboards de BI tradicional.</p>
+                    </div>
+                    <div class="glass-panel p-3.5 border-l-4 border-blue-500 bg-gray-800/20">
+                        <h4 class="font-bold text-white text-base md:text-lg">2. Diagnóstico</h4>
+                        <p class="text-sm md:text-base text-gray-400 mt-1">¿Por qué pasó? Análisis profundo de causa raíz correlacionando variables.</p>
+                    </div>
+                    <div class="glass-panel p-3.5 border-l-4 border-purple-500 bg-gray-800/20">
+                        <h4 class="font-bold text-white text-base md:text-lg">3. Predictivo</h4>
+                        <p class="text-sm md:text-base text-gray-400 mt-1">¿Qué pasará? Modelos estadísticos y Machine Learning para anticipar fallos.</p>
+                    </div>
+                    <div class="glass-panel p-3.5 border-l-4 border-red-500 bg-gray-800/20">
+                        <h4 class="font-bold text-white text-base md:text-lg">4. Prescriptivo</h4>
+                        <p class="text-sm md:text-base text-gray-300 mt-1">¿Qué hacer? Agentes autónomos de IA determinando la acción óptima de mitigación.</p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 glass-panel p-4 flex flex-col justify-center bg-gray-900/50 h-[280px]">
+                    <svg viewBox="0 0 400 240" class="w-full h-full">
+                        <line x1="40" y1="200" x2="380" y2="200" stroke="#475569" stroke-width="2"/>
+                        <line x1="40" y1="200" x2="40" y2="20" stroke="#475569" stroke-width="2"/>
+                        <text x="210" y="225" fill="#94a3b8" font-size="13" text-anchor="middle">Complejidad</text>
+                        <text x="20" y="110" fill="#94a3b8" font-size="13" text-anchor="middle" transform="rotate(-90, 20, 110)">Valor de Negocio</text>
+                        
+                        <path d="M 40 200 Q 150 185, 250 110 T 360 30" fill="none" stroke="#E63946" stroke-width="4"/>
+                        
+                        <circle cx="100" cy="190" r="6" fill="#64748b" />
+                        <circle cx="180" cy="155" r="6" fill="#3b82f6" />
+                        <circle cx="260" cy="100" r="6" fill="#a855f7" />
+                        <circle cx="340" cy="45" r="8" fill="#E63946" />
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="mt-4 glass-panel p-4 border-l-4 border-orange-500 bg-orange-950/10">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-solid fa-triangle-exclamation text-orange-400"></i>
+                    <h4 class="font-bold text-white text-sm md:text-base uppercase tracking-wider">Diagnóstico Crítico del Sector</h4>
+                </div>
+                <p class="text-sm md:text-base text-gray-300 leading-relaxed">
+                    Aproximadamente el <strong>75% de los proveedores automotrices</strong> se encuentran estancados en las fases Histórica y de Diagnóstico (Niveles 1 y 2). La transición hacia modelos predictivos es la mayor ventana de ventaja competitiva en la actualidad.
+                </p>
+                <p class="text-xs text-gray-500 mt-2 italic"><i class="fa-solid fa-bookmark"></i> Referencia: McKinsey & Company - "The future of the automotive supply chain".</p>
+            </div>
+        </div>
+
+        <!-- 13. Datos y Analítica No Estructurada -->
+        <div class="slide" id="slide-13">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">AI en Datos: Procesando lo No Estructurado</h2>
+            <p class="text-lg md:text-xl text-gray-300 mb-6">El verdadero valor reside en explotar el 80% de la información de manufactura que no reside en celdas estructuradas.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Visión & Imágenes -->
+                <div class="glass-panel overflow-hidden flex flex-col bg-gradient-to-b from-gray-800/30 to-gray-900/60 p-6 text-center">
+                    <div class="w-full h-32 mb-4 flex items-center justify-center bg-slate-950/40 rounded-lg">
+                        <svg width="80" height="80" viewBox="0 0 100 100" class="text-cyan-400 animate-pulse">
+                            <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M20,50 L80,50 M50,20 L50,80" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>
+                            <rect x="35" y="35" width="30" height="30" fill="none" stroke="#E63946" stroke-width="2"/>
+                            <path d="M10,25 L25,10 M90,25 L75,10 M10,75 L25,90 M90,75 L75,90" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 text-white">Visión & Imágenes</h3>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed">Inspección de control geométrico automatizado, validación visual de tolerancias mecánicas y lectura automatizada de planos CAD.</p>
+                </div>
+
+                <!-- Audio & Sensores -->
+                <div class="glass-panel overflow-hidden flex flex-col bg-gradient-to-b from-gray-800/30 to-gray-900/60 p-6 text-center">
+                    <div class="w-full h-32 mb-4 flex items-center justify-center bg-slate-950/40 rounded-lg">
+                        <svg width="80" height="80" viewBox="0 0 100 100" class="text-purple-400">
+                            <path d="M10,50 Q20,20 30,50 T50,50 T70,50 T90,50" fill="none" stroke="currentColor" stroke-width="3"/>
+                            <path d="M10,50 Q20,80 30,50 T50,50 T70,20 T90,50" fill="none" stroke="#E63946" stroke-width="1.5" stroke-dasharray="2 1"/>
+                            <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 text-white">Audio & Sensores</h3>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed">Procesamiento de telemetría acústica en herramentales y análisis predictivo de vibraciones armónicas en motores CNC.</p>
+                </div>
+
+                <!-- Texto Libre -->
+                <div class="glass-panel overflow-hidden flex flex-col bg-gradient-to-b from-gray-800/30 to-gray-900/60 p-6 text-center">
+                    <div class="w-full h-32 mb-4 flex items-center justify-center bg-slate-950/40 rounded-lg">
+                        <svg width="80" height="80" viewBox="0 0 100 100" class="text-green-400">
+                            <rect x="25" y="15" width="50" height="70" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="35" y1="30" x2="65" y2="30" stroke="currentColor" stroke-width="2"/>
+                            <line x1="35" y1="45" x2="65" y2="45" stroke="currentColor" stroke-width="2"/>
+                            <line x1="35" y1="60" x2="55" y2="60" stroke="#E63946" stroke-width="3"/>
+                            <circle cx="70" cy="70" r="12" fill="#0B1120" stroke="#06b6d4" stroke-width="2"/>
+                            <path d="M66,70 L74,70 M70,66 L70,74" stroke="#06b6d4" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold mb-2 text-white">Texto Libre</h3>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed">Análisis de minutas de ingeniería, interpretación automática de contratos y extracción de especificaciones técnicas en RFPs.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 14. ¿Qué es un Agente de IA? -->
+        <div class="slide" id="slide-14">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">¿Qué es y cómo funciona un "Agente de IA"?</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6 text-gray-300">
+                    <p class="text-lg md:text-xl leading-relaxed font-normal">Un Agente de IA supera las capacidades de un chatbot predictivo convencional; constituye un <strong>sistema de cómputo autónomo</strong> estructurado para razonar, invocar herramientas informáticas y completar procesos complejos de principio a fin.</p>
+                    
+                    <div class="glass-panel p-6 md:p-8 border-l-4 border-cyan-500 bg-gray-900/40">
+                        <h4 class="font-bold text-white mb-4 uppercase tracking-wider text-sm md:text-base"><i class="fa-solid fa-briefcase mr-2"></i>Ejemplos en Planta Automotriz:</h4>
+                        <ul class="space-y-4 text-sm md:text-base leading-relaxed">
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-boxes-packing text-cyan-400 mt-1 text-lg"></i> 
+                                <div>
+                                    <strong class="text-white block mb-0.5 text-base md:text-lg">Agente de Abastecimiento (Supply Chain):</strong>
+                                    Monitorea niveles en SAP ERP, detecta escasez, solicita cotizaciones autónomamente por email a proveedores Tier 2 y formula una propuesta de orden de compra.
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fa-solid fa-clipboard-check text-cyan-400 mt-1 text-lg"></i> 
+                                <div>
+                                    <strong class="text-white block mb-0.5 text-base md:text-lg">Agente de Auditoría de Calidad:</strong>
+                                    Lee e interpreta reportes de defectos no estructurados de los operadores, cruzando los hallazgos contra los manuales de la norma IATF 16949 para emitir alertas.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Arquitectura del Agente -->
+                <div class="glass-panel p-8 flex flex-col items-center justify-center bg-gray-900/60 h-full min-h-[300px]">
+                    <h4 class="text-sm font-bold text-gray-400 mb-6 uppercase tracking-widest">Arquitectura Cognitiva</h4>
+                    <svg viewBox="0 0 450 300" class="w-full max-h-64 drop-shadow-lg">
+                        <rect x="140" y="105" width="180" height="70" rx="10" fill="#E63946" stroke="#fff" stroke-width="2"></rect>
+                        <text x="225" y="138" fill="white" font-weight="bold" font-size="20" text-anchor="middle">LLM (Cerebro)</text>
+                        <text x="225" y="154" fill="rgba(255,255,255,0.7)" font-size="16" text-anchor="middle">Planificación</text>
+
+                        <rect x="5" y="30" width="160" height="45" rx="5" fill="#0B1120" stroke="#06b6d4" stroke-width="2"></rect>
+                        <text x="85" y="52" fill="#06b6d4" text-anchor="middle" font-weight="bold" font-size="20">Memoria (RAG)</text>
+                        <text x="85" y="66" fill="#64748b" text-anchor="middle" font-size="11">Base de Conocimiento</text>
+
+                        <rect x="285" y="30" width="160" height="45" rx="5" fill="#0B1120" stroke="#f59e0b" stroke-width="2"></rect>
+                        <text x="365" y="52" fill="#f59e0b" text-anchor="middle" font-weight="bold" font-size="20">Tools / APIs</text>
+                        <text x="365" y="66" fill="#64748b" text-anchor="middle" font-size="11">SAP, Snowflake, Web</text>
+
+                        <rect x="140" y="230" width="170" height="45" rx="5" fill="#0B1120" stroke="#10b981" stroke-width="2"></rect>
+                        <text x="225" y="252" fill="#10b981" text-anchor="middle" font-weight="bold" font-size="20">Acción / Entorno</text>
+                        <text x="225" y="266" fill="#64748b" text-anchor="middle" font-size="11">Resultados &amp; Feedback</text>
+
+                        <path d="M 165 104 L 100 75" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"></path>
+                        <path d="M 265 104 L 335 75" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"></path>
+                        <path d="M 225 176 L 225 230" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"></path>
+                        
+                        <path d="M 140 140 C 90 140, 90 250, 140 250" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6"></path>
+                        <text x="110" y="200" fill="#3b82f6" font-size="12" font-weight="bold" text-anchor="middle">Autocorrección</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 15. Caso 1: Talk to your Data -->
+        <div class="slide" id="slide-15">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Casos de Uso Aplicados</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 border-b border-gray-700 pb-2 inline-block">Caso 1: "Talk to your Data" (Agentes Analíticos)</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Columna Izquierda: Contenido del Caso -->
+                <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-4">
+                        <span class="bg-gray-800 text-gray-300 text-sm font-bold px-3 py-1 rounded uppercase tracking-wider inline-block border border-gray-700">El Reto de Negocio</span>
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed font-normal">Una cadena líder de proveeduría y repuestos sufría para obtener respuestas ágiles de su base de datos masiva, requiriendo días de solicitudes a IT por cada reporte de ventas de sucursales.</p>
+                        
+                        <span class="bg-cyan-950/50 text-cyan-400 text-sm font-bold px-3 py-1 rounded uppercase tracking-wider inline-block border border-cyan-800">La Solución KodeFree</span>
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed font-normal">Desarrollo de un servidor de protocolo de contexto de modelos (MCP) customizado para interactuar mediante lenguaje natural con Snowflake, generando consultas y gráficos al vuelo en segundos.</p>
+                    </div>
+                    
+                    <div class="bg-gray-950/40 p-4 rounded-lg border border-gray-800/60">
+                        <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1">Métrica Clave de Éxito</span>
+                        <p class="text-sm md:text-base font-semibold text-green-400"><i class="fa-solid fa-arrow-trend-up mr-1.5"></i>Reducción del tiempo de respuesta de analítica de 48 horas a menos de 5 segundos.</p>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Contenedor con Área para Video o Imagen -->
+                <div class="lg:col-span-7 flex flex-col justify-between">
+                    <div class="glass-panel overflow-hidden border border-red-500/30 bg-slate-950/70 p-4 rounded-xl flex-grow flex flex-col justify-center min-h-[300px]">
+                        <!-- ========================================================================= -->
+                        <!-- INSTRUCCIONES DE EDICIÓN: Puedes reemplazar este bloque simulado por      -->
+                        <!-- tu propio video o imagen de esta forma:                                   -->
+                        <!-- <video src="tu_video.mp4" class="w-full rounded-lg" controls autoplay muted></video> -->
+                        <!-- O <img src="tu_imagen.png" class="w-full h-full object-cover rounded-lg"> -->
+                        <!-- ========================================================================= -->
+                        
+                        <video src="./talkToYourData.mp4" class="w-full rounded-lg" controls autoplay muted></video>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 16. Caso 2: Modelos de Segmentación -->
+        <div class="slide" id="slide-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Casos de Uso Aplicados</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 border-b border-gray-700 pb-2 inline-block">Caso 2: Modelos de Segmentación y Clasificación Dinámica</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Columna Izquierda: Contenido del Caso -->
+                <div class="lg:col-span-5 flex flex-col justify-between space-y-4">
+                    <div class="space-y-4">
+                        <span class="bg-gray-800 text-gray-300 text-sm font-bold px-3 py-1 rounded uppercase tracking-wider inline-block border border-gray-700">El Reto de Negocio</span>
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed font-normal">Un líder de distribución masiva requería optimizar su mix de productos sin saturar los canales, requiriendo segmentar miles de puntos de venta según comportamiento cambiante de compra.</p>
+                        
+                        <span class="bg-cyan-950/50 text-cyan-400 text-sm font-bold px-3 py-1 rounded uppercase tracking-wider inline-block border border-cyan-800">La Solución KodeFree</span>
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed font-normal">Implementamos un modelo de Machine Learning no supervisado para agrupar dinámicamente canales y puntos de distribución considerando geolocalización, mix de marcas, inventario y volumen histórico.</p>
+                    </div>
+                    
+                    <div class="bg-gray-950/40 p-4 rounded-lg border border-gray-800/60">
+                        <span class="text-xs text-gray-500 uppercase tracking-wider font-bold block mb-1">Impacto de la Solución</span>
+                        <p class="text-sm md:text-base font-semibold text-cyan-300"><i class="fa-solid fa-circle-check mr-1.5"></i>Alineación exitosa del 75% de las ventas en agrupaciones óptimas predictivas.</p>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Contenedor con Área para Video o Imagen -->
+                <div class="lg:col-span-7 flex flex-col justify-between">
+                    <div class="glass-panel overflow-hidden border border-cyan-500/30 bg-slate-950/70 p-4 rounded-xl flex-grow flex flex-col justify-center min-h-[300px]">
+                        <!-- ========================================================================= -->
+                        <!-- INSTRUCCIONES DE EDICIÓN: Puedes reemplazar este bloque simulado por      -->
+                        <!-- tu propio video o imagen de esta forma:                                   -->
+                        <!-- <video src="tu_video.mp4" class="w-full rounded-lg" controls autoplay muted></video> -->
+                        <!-- O <img src="tu_imagen.png" class="w-full h-full object-cover rounded-lg"> -->
+                        <!-- ========================================================================= -->
+                        
+                        <div class="flex flex-col items-center justify-center text-center space-y-4 py-8">
+                            <div class="w-16 h-16 bg-cyan-500/10 rounded-full flex items-center justify-center border border-cyan-500/30 animate-pulse">
+                                <i class="fa-solid fa-chart-pie text-2xl text-cyan-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-base">Espacio para Visualización de Clústeres</h4>
+                                <p class="text-sm text-gray-400 max-w-sm mx-auto mt-1">Reemplaza este placeholder con un video de la interfaz interactiva de segmentación o una imagen del mapa de distribución de puntos de venta.</p>
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded border border-gray-800/60 text-xs text-gray-400">
+                                <i class="fa-solid fa-code text-red-400"></i>
+                                <span>Clasificación Dinámica por Atributos SKU y Geolocalización</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 17. Caso 3: Churn con Reproductor de Video -->
+        <div class="slide" id="slide-17">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Casos de Uso Aplicados</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 border-b border-gray-700 pb-2 inline-block">Caso 3: Entendiendo el Customer Churn</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div class="lg:col-span-5 space-y-6">
+                    <div>
+                        <span class="bg-gray-800 text-gray-300 text-sm font-bold px-3 py-1 rounded uppercase tracking-wider mb-2 inline-block border border-gray-700">El Reto Automotriz</span>
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed font-normal">Un manufacturador de vehículos premium necesitaba comprender y mitigar la pérdida de clientes (churn) en sus rentables servicios de post-venta y mantenimiento en talleres oficiales.</p>
+                    </div>
+                    <div>
+                        <span class="bg-cyan-900/50 text-cyan-400 text-sm font-bold px-3 py-1 rounded uppercase tracking-wider mb-2 inline-block border border-cyan-800">La Arquitectura KodeFree</span>
+                        <p class="text-base md:text-lg text-gray-300 leading-relaxed font-normal">La solución consistió en implementar un robusto pipeline de datos unificados hacia <strong>Snowflake</strong>, junto con un Sandbox analítico interactivo basado en <strong>Streamlit</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Video Real + Resultados -->
+                <div class="lg:col-span-7 flex flex-col gap-4">
+                    <!-- Contenedor del Video Premium -->
+                    <div class="glass-panel overflow-hidden border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.15)] relative bg-black rounded-xl group">
+                        <div class="absolute top-3 left-3 bg-black/70 backdrop-blur-md border border-gray-700 text-white text-xs font-bold px-3 py-1.5 rounded flex items-center z-10 shadow-lg">
+                            <i class="fa-solid fa-circle-play text-red-500 mr-2 animate-pulse"></i> DEMO INTERACTIVO
+                        </div>
+                        <!-- Video cargado localmente -->
+                        <video src="./FORD_CHURN_SYNTHETIC_CLEAN.mp4" controls autoplay muted class="w-full aspect-video object-cover"></video>
+                    </div>
+                    
+                    <!-- Resultados compactados debajo del video -->
+                    <div class="glass-panel p-4 border-l-4 border-purple-500 bg-gray-900/60 shadow-xl">
+                        <h4 class="font-bold text-white text-sm md:text-base mb-2 flex items-center"><i class="fa-solid fa-users-gear text-purple-500 mr-2"></i>Resultados del Simulador</h4>
+                        <ul class="text-sm md:text-base text-gray-400 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-caret-right text-purple-400 mt-0.5"></i> <span>Escenarios <em>"What-If"</em> manipulando variables de riesgo en tiempo real.</span></li>
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-caret-right text-purple-400 mt-0.5"></i> <span>Ajustar parámetros: tipo de auto, combustible, distancia a centro de servicio.</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 18. Caso 4: KYC / Perfiles -->
+        <div class="slide" id="slide-18">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Reduciendo el Riesgo Comercial y Fiscal</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 flex items-center gap-3">
+                Caso 4: Custom Client Profiles (KYC Automotriz)
+                <span class="bg-red-500/20 text-red-400 text-xs border border-red-500/50 px-2 py-1 rounded-full font-mono uppercase tracking-widest"><i class="fa-solid fa-file-pdf mr-1"></i>Ver PDF: KodeFree Use Case - Custom Client Profiles.pdf</span>
+            </h3>
+            
+            <div class="glass-panel p-6 bg-gradient-to-br from-gray-800 to-gray-900 shadow-2xl border-t-4 border-t-red-600 rounded-xl space-y-6">
+                <p class="text-gray-200 border-l-4 border-red-500 pl-4 text-base md:text-lg leading-relaxed mb-4 font-semibold">
+                    El onboarding manual de socios comerciales y proveedores genera vulnerabilidades de cumplimiento, lavado y fraudes. KodeFree diseñó un ecosistema unificado que automatiza por completo el flujo de <strong>Know Your Customer (KYC)</strong>.
+                </p>
+
+                <div class="flex flex-col gap-6">
+                    <div class="bg-black/40 p-5 rounded-lg border border-gray-700/50 flex flex-col justify-between">
+                        <div class="mb-4">
+                            <h4 class="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2"><i class="fa-solid fa-microchip mr-2"></i>Arquitectura con Agente de IA Centralizado</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">El Agente de IA actúa como el director cognitivo central, orquestando e interactuando de forma bidireccional entre la ingesta documental, validaciones de cumplimiento y la sincronización con los sistemas de origen corporativos.</p>
+                        </div>
+                        
+                        <!-- Sistema de conexión responsiva de 5 columnas fluidas con SVGs porcentuales independientes -->
+                        <div class="grid grid-cols-[auto_1fr_auto_1fr_auto] items-center gap-x-2 md:gap-x-4 w-full h-48 relative px-2">
+                            <!-- Columna 1: Tarjetas Izquierdas -->
+                            <div class="relative z-10 flex flex-col gap-6 justify-center min-w-[100px]">
+                                <div class="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded text-md text-gray-300 w-32 md:w-40 flex items-center gap-2 shadow-lg min-h-[50px]">
+                                    <i class="fa-solid fa-file-invoice text-cyan-400 shrink-0 text-base"></i>
+                                    <span class="leading-tight font-normal text-gray-200">Ingesta & OCR (PDF/Tax IDs)</span>
+                                </div>
+                                <div class="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded text-md text-gray-300 w-32 md:w-40 flex items-center gap-2 shadow-lg min-h-[50px]">
+                                    <i class="fa-solid fa-fingerprint text-green-400 shrink-0 text-base"></i>
+                                    <span class="leading-tight font-normal text-gray-200">Biometría & Identidad</span>
+                                </div>
+                            </div>
+
+                            <!-- Columna 2: Conector Izquierdo Fluido (z-0 en el fondo) -->
+                            <div class="relative z-0 h-full flex-grow min-w-[20px] md:min-w-[60px]">
+                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-full absolute inset-0 pointer-events-none overflow-visible">
+                                    <defs>
+                                        <marker id="arrow-bidir-left" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                            <path d="M 0 2 L 8 5 L 0 8 z" fill="#64748b" />
+                                        </marker>
+                                    </defs>
+                                    <!-- Curva desde arriba (Ingesta) al centro (Agente) con alineación adaptativa exacta -->
+                                    <path d="M 2 31 C 40 31, 60 50, 98 50" fill="none" stroke="#4b5563" stroke-width="2.5" marker-start="url(#arrow-bidir-left)" marker-end="url(#arrow-bidir-left)" />
+                                    <!-- Curva desde abajo (Biometría) al centro (Agente) -->
+                                    <path d="M 2 69 C 40 69, 60 50, 98 50" fill="none" stroke="#4b5563" stroke-width="2.5" marker-start="url(#arrow-bidir-left)" marker-end="url(#arrow-bidir-left)" />
+                                </svg>
+                            </div>
+
+                            <!-- Columna 3: Tarjeta Central (Agente IA - z-20 elevado al frente) -->
+                            <div class="relative z-20 flex items-center justify-center">
+                                <div class="bg-red-600 border-2 border-white px-4 py-3 rounded-xl w-32 md:w-36 text-center shadow-2xl animate-pulse min-h-[70px] flex flex-col justify-center">
+                                    <span class="block font-bold text-md uppercase tracking-wide text-white leading-none"><i class="fa-solid fa-robot mr-1"></i>AGENTE IA</span>
+                                    <span class="text-sm text-red-100 block mt-1">Orquestador</span>
+                                </div>
+                            </div>
+
+                            <!-- Columna 4: Conector Derecho Fluido (z-0 en el fondo) -->
+                            <div class="relative z-0 h-full flex-grow min-w-[20px] md:min-w-[60px]">
+                                <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-full absolute inset-0 pointer-events-none overflow-visible">
+                                    <!-- Curva desde el centro (Agente) hacia Compliance (Arriba) -->
+                                    <path d="M 2 50 C 40 50, 60 31, 98 31" fill="none" stroke="#4b5563" stroke-width="2.5" marker-start="url(#arrow-bidir-left)" marker-end="url(#arrow-bidir-left)" />
+                                    <!-- Curva desde el centro (Agente) hacia Sistemas (Abajo) -->
+                                    <path d="M 2 50 C 40 50, 60 69, 98 69" fill="none" stroke="#4b5563" stroke-width="2.5" marker-start="url(#arrow-bidir-left)" marker-end="url(#arrow-bidir-left)" />
+                                </svg>
+                            </div>
+
+                            <!-- Columna 5: Tarjetas Derechas -->
+                            <div class="relative z-10 flex flex-col gap-6 justify-center">
+                                <div class="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded text-md text-gray-300 w-32 md:w-36 flex items-center gap-2 shadow-lg min-h-[50px]">
+                                    <i class="fa-solid fa-shield-halved text-orange-400 shrink-0 text-base"></i>
+                                    <span class="leading-tight font-normal text-gray-200">Compliance (OFAC/ONU)</span>
+                                </div>
+                                <div class="bg-gray-800 border border-gray-700 px-3 py-1.5 rounded text-md text-gray-300 w-32 md:w-36 flex items-center gap-2 shadow-lg min-h-[50px]">
+                                    <i class="fa-solid fa-network-wired text-purple-400 shrink-0 text-base"></i>
+                                    <span class="leading-tight font-normal text-gray-200">Sistemas (SAP/CRM)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-800/60 p-5 rounded-lg border border-gray-700/30">
+                        <h4 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-4"><i class="fa-solid fa-shield-halved mr-2"></i>Beneficios Clave</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-base md:text-lg text-gray-300 leading-relaxed">
+                            <!-- Columna 1 -->
+                            <div class="flex items-start gap-3 bg-black/20 p-4 rounded-lg border border-gray-800/40">
+                                <i class="fa-solid fa-circle-check text-green-500 mt-1 shrink-0 text-sm"></i>
+                                <div>
+                                    <strong class="text-white block mb-1 text-sm">Cero Deuda de Cumplimiento:</strong>
+                                     <span class="text-sm">Indexación de pedimentos, actas de asamblea y firmas inalterables listas para auditorías de aduanas y SAT.</span>
+                                </div>
+                            </div>
+                            <!-- Columna 2 -->
+                            <div class="flex items-start gap-3 bg-black/20 p-4 rounded-lg border border-gray-800/40">
+                                <i class="fa-solid fa-circle-check text-green-500 mt-1 shrink-0 text-sm"></i>
+                                <div>
+                                    <strong class="text-white block mb-1 text-sm">Aceleración Extrema:</strong>
+                                     <span class="text-sm">Reducción drástica del onboarding e ingreso de clientes de 15 días a menos de 5 minutos.</span>
+                                </div>
+                            </div>
+                            <!-- Columna 3 -->
+                            <div class="flex items-start gap-3 bg-black/20 p-4 rounded-lg border border-gray-800/40">
+                                <i class="fa-solid fa-circle-check text-green-500 mt-1 shrink-0 text-sm"></i>
+                                <div>
+                                    <strong class="text-white block mb-1 text-sm">Protección Reputacional:</strong>
+                                    <span class="text-sm">Alertas prescriptivas ante incidencias regulatorias críticas de la OFAC u otras listas de control.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 text-left text-xs text-gray-500 italic">
+                * Fuente de información: KodeFree Use Case Document: "Reducing Risk by Creating Custom Customer Profiles" (PDF Referenciado: KodeFree Use Case - Custom Client Profiles.pdf).
+            </div>
+        </div>
+
+
+        <!-- 19. Accelerated Value Program (Intro) -->
+        <div class="slide" id="slide-19">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Decisión Ejecutiva: ¿Cómo Empezar?</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 flex items-center gap-3 font-semibold">
+                Accelerated Value Program (AVP)
+                <span class="bg-blue-500/20 text-blue-400 text-sm border border-blue-500/50 px-2.5 py-1 rounded-full font-mono uppercase tracking-widest"><i class="fa-solid fa-file-pdf mr-1"></i>Documento AVP Adjunto</span>
+            </h3>
+            <p class="text-base md:text-lg text-gray-300 mb-8 font-normal">Inicia tu transformación empresarial con una iniciativa de <strong class="text-white">bajo riesgo y alto impacto</strong>. Pase de una idea a un prototipo funcional bajo un modelo de tiempos limitados y costos fijos, demostrando valor antes de escalar a producción.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Tiempos y Costos -->
+                <div class="glass-panel p-8 border-t-4 border-t-red-500 text-center flex flex-col justify-center bg-gray-900/60 shadow-xl">
+                    <h4 class="font-bold text-gray-400 uppercase text-sm tracking-widest mb-6"><i class="fa-solid fa-handshake-angle mr-2"></i>Inversión Inicial</h4>
+                    <div class="text-5xl md:text-6xl font-black text-white mb-3">8 <span class="text-xl font-normal text-gray-400">Semanas</span></div>
+                    <p class="text-sm text-gray-500 mt-4">Evita proyectos exploratorios interminables (Scope Creep) y asegura una toma de decisión basada en evidencia real de negocio.</p>
+                </div>
+                
+                <!-- Cronograma (Fases) -->
+                <div class="glass-panel p-6 lg:col-span-2 border-l-4 border-l-cyan-500 bg-gray-900/40 flex flex-col justify-center">
+                    <h4 class="font-bold text-white mb-5 border-b border-gray-700 pb-2 text-lg md:text-xl"><i class="fa-solid fa-timeline text-cyan-400 mr-2"></i>Metodología Ágil en 3 Fases</h4>
+                    <ul class="space-y-5 text-sm md:text-base">
+                        <li class="flex items-start gap-4">
+                            <span class="bg-blue-600/20 text-blue-400 border border-blue-500 text-sm font-bold px-3 py-1.5 rounded-md w-28 text-center shrink-0">Sem 1 - 2</span>
+                            <div>
+                                <strong class="text-white block mb-0.5 text-base md:text-lg">Fase 1: Descubrimiento y Selección</strong>
+                                <p class="text-gray-400 leading-relaxed">Auditoría de datos, entrevistas a stakeholders y selección del caso de uso óptimo en el cuadrante de priorización.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="bg-purple-600/20 text-purple-400 border border-purple-500 text-sm font-bold px-3 py-1.5 rounded-md w-28 text-center shrink-0">Sem 3 - 6</span>
+                            <div>
+                                <strong class="text-white block mb-0.5 text-base md:text-lg">Fase 2: Desarrollo del Piloto</strong>
+                                <p class="text-gray-400 leading-relaxed">Ingeniería en entorno Sandbox aislado. Controlamos lo inesperado con restricciones tecnológicas definidas.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span class="bg-green-600/20 text-green-400 border border-green-500 text-sm font-bold px-3 py-1.5 rounded-md w-28 text-center shrink-0">Sem 7 - 8</span>
+                            <div>
+                                <strong class="text-white block mb-0.5 text-base md:text-lg">Fase 3: UAT & Lanzamiento</strong>
+                                <p class="text-gray-400 leading-relaxed">Pruebas de validación de usuario (User Acceptance Testing) y diseño del Roadmap para escalar a producción.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 20. El Cuadrante de Priorización -->
+        <div class="slide" id="slide-20">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Metodología: El Cuadrante de Priorización</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-6 font-semibold">Asegurando el éxito desde el inicio de la Fase 1.</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-5 space-y-6 text-gray-300">
+                    <p class="text-base md:text-lg leading-relaxed">El Cuadrante de Priorización materializa el éxito del proceso. Al completar este ejercicio de forma meticulosa junto a los stakeholders, aseguramos que los esfuerzos de la organización estén bien enfocados.</p>
+                    
+                    <div class="bg-cyan-950/20 border-l-4 border-cyan-500 p-4 rounded text-sm md:text-base font-normal">
+                        <strong class="text-white flex items-center mb-2"><i class="fa-solid fa-bullseye text-cyan-400 mr-2"></i>The Sweet Spot</strong>
+                        Buscamos casos de uso que ofrezcan un <span class="text-cyan-300 font-bold">Alto Impacto de Negocio</span> cruzado con una <span class="text-cyan-300 font-bold">Alta Viabilidad Técnica</span>. Este es el foco del programa piloto.
+                    </div>
+                </div>
+
+                <!-- Matrix UI con eje Y completamente por fuera (centrado y escalado a max-w-[360px]) -->
+                <div class="lg:col-span-7 glass-panel p-6 bg-slate-900/80 flex flex-col justify-center items-center">
+                    <div class="max-w-[480px] w-full flex flex-col">
+                        <div class="flex items-stretch gap-4 w-full">
+                            
+                            <!-- Columna Izquierda: Eje Y (Totalmente fuera del contenedor del grid) -->
+                            <div class="w-8 flex flex-col justify-between items-center shrink-0 py-4 select-none">
+                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Alto</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block whitespace-nowrap" style="writing-mode: vertical-rl; transform: rotate(180deg);">Impacto de Negocio</span>
+                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Bajo</span>
+                            </div>
+                            
+                            <!-- Columna Derecha: El Cuadrante (Aspecto Cuadrado) -->
+                            <div class="flex-grow">
+                                <div class="w-full aspect-square border-2 border-gray-700 grid grid-cols-2 grid-rows-2 relative bg-gray-950/50 rounded-xl overflow-hidden shadow-2xl">
+                                    
+                                    <!-- Top Left: Strategic Bets -->
+                                    <div class="border-r border-b border-gray-800 p-2 relative group hover:bg-gray-800/10 transition">
+                                        <span class="absolute top-2 left-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider">Strategic Bets</span>
+                                        <div class="absolute top-1/2 left-4 flex items-center text-xs text-gray-300 bg-gray-900/40 p-1 rounded border border-gray-800/40">
+                                            <span class="w-2 h-2 rounded-full bg-red-500 mr-1.5 shrink-0"></span> Inv. Real-Time
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Top Right: Sweet Spot (Highlighted) -->
+                                    <div class="border-b border-gray-800 p-2 relative bg-cyan-950/20 ring-inset ring-2 ring-cyan-500/20 group hover:bg-cyan-950/30 transition">
+                                        <span class="absolute top-2 right-2 text-[9px] font-bold text-cyan-400 uppercase tracking-wider">The Sweet Spot</span>
+                                        <div class="absolute top-[40%] left-4 flex items-center text-xs font-bold text-white bg-cyan-900/40 p-1.5 rounded border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.15)]">
+                                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse mr-1.5 shrink-0 shadow-[0_0_8px_rgba(239,68,68,1)]"></span> Cust. Churn
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Left: Money Pits -->
+                                    <div class="border-r border-gray-800 p-2 relative group hover:bg-gray-800/10 transition">
+                                        <span class="absolute top-2 left-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider">Money Pits</span>
+                                        <div class="absolute bottom-[30%] right-2 flex items-center text-xs text-gray-400 bg-gray-900/40 p-1 rounded border border-gray-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 shrink-0 opacity-50"></span> OCR Logs
+                                        </div>
+                                    </div>
+
+                                    <!-- Bottom Right: Low Hanging Fruit -->
+                                    <div class="p-2 relative group hover:bg-gray-800/10 transition">
+                                        <span class="absolute top-2 right-2 text-[9px] font-bold text-gray-500 uppercase tracking-wider">Low Hanging Fruit</span>
+                                        <div class="absolute top-1/4 left-2 flex items-center text-xs text-gray-300 bg-gray-900/40 p-1 rounded border border-gray-800/40">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5 shrink-0"></span> Sentiment
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Fila Inferior: Eje X alineado con la gráfica superior -->
+                        <div class="flex gap-4 w-full mt-4 select-none">
+                            <div class="w-8 shrink-0"></div> <!-- Alignment spacer -->
+                            <div class="flex-grow flex justify-between text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2">
+                                <span>Baja Viabilidad</span>
+                                <span>Alta Viabilidad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 21. Entregables y Equipo -->
+        <div class="slide" id="slide-21">
+            <h2 class="text-3xl md:text-4xl font-bold mb-8">Estructura del Proyecto y Entregables</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Entregables (Left) -->
+                <div class="glass-panel border-t-4 border-t-green-500 flex flex-col overflow-hidden">
+                    <div class="bg-gray-900/80 p-5 border-b border-gray-800 flex items-center gap-3">
+                        <i class="fa-solid fa-clipboard-check text-2xl text-green-400"></i>
+                        <h3 class="text-xl md:text-2xl font-bold text-white uppercase tracking-wider">Entregables Formales</h3>
+                    </div>
+                    <div class="p-6 md:p-8 flex-grow space-y-6">
+                        <p class="text-sm md:text-base text-gray-300 italic mb-2">Al final del programa de 8 semanas, KodeFree provee:</p>
+                        
+                        <div class="flex items-start gap-4 text-sm md:text-base leading-relaxed">
+                            <div class="w-10 h-10 rounded-lg bg-green-900/30 flex items-center justify-center border border-green-500/50 shrink-0">
+                                <i class="fa-solid fa-code-branch text-green-400"></i>
+                            </div>
+                            <div>
+                                <strong class="text-white text-base md:text-lg block mb-1">Piloto Funcional</strong>
+                                <p class="text-gray-400 font-normal">Un piloto de software interactivo y completamente funcional dentro del Sandbox que demuestre y valide el caso de uso seleccionado (UAT).</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-4 text-sm md:text-base leading-relaxed">
+                            <div class="w-10 h-10 rounded-lg bg-green-900/30 flex items-center justify-center border border-green-500/50 shrink-0">
+                                <i class="fa-solid fa-file-contract text-green-400"></i>
+                            </div>
+                            <div>
+                                <strong class="text-white text-base md:text-lg block mb-2">Documento de Requisitos a Producción</strong>
+                                <p class="text-gray-400 mb-3 font-normal">Plan exhaustivo para escalar el piloto a un sistema corporativo (Enterprise Grade). Incluye:</p>
+                                <ul class="space-y-2 text-gray-400 pl-2">
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-green-500 text-xs"></i> <span class="font-normal">Plan de proyecto, recursos y estimación de horas.</span></li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-green-500 text-xs"></i> <span class="font-normal">Orientación en infraestructura Cloud y servicios base.</span></li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-green-500 text-xs"></i> <span class="font-normal">Consideraciones de gobernanza corporativa.</span></li>
+                                    <li class="flex items-center gap-2"><i class="fa-solid fa-arrow-right text-green-500 text-xs"></i> <span class="font-normal">Sugerencias de monitorización de métricas y KPIs.</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipo Asignado (Right) -->
+                <div class="glass-panel border-t-4 border-t-blue-500 flex flex-col overflow-hidden">
+                    <div class="bg-gray-900/80 p-5 border-b border-gray-800 flex items-center gap-3">
+                        <i class="fa-solid fa-users-gear text-2xl text-blue-400"></i>
+                        <h3 class="text-xl md:text-2xl font-bold text-white uppercase tracking-wider">Recursos Requeridos</h3>
+                    </div>
+                    <div class="p-6 md:p-8 flex-grow space-y-5 text-sm md:text-base leading-relaxed">
+                        
+                        <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                            <strong class="text-blue-400 block mb-1 text-base md:text-lg"><i class="fa-solid fa-network-wired w-6 text-center"></i> Solutions Architect (KodeFree)</strong>
+                            <p class="text-gray-300 font-normal">Encargado de la estrategia global técnica, definición de caso de uso, selección de la arquitectura y la alineación crítica con el negocio.</p>
+                        </div>
+
+                        <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                            <strong class="text-blue-400 block mb-1 text-base md:text-lg"><i class="fa-solid fa-terminal w-6 text-center"></i> Data / AI Engineer (KodeFree)</strong>
+                            <p class="text-gray-300 font-normal">Crea el Pipeline (ETL/ELT), extrae los datos, entrena los modelos matemáticos y es el encargado de construir la capa analítica de front-end.</p>
+                        </div>
+
+                        <div class="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                            <strong class="text-blue-400 block mb-1 text-base md:text-lg"><i class="fa-solid fa-list-check w-6 text-center"></i> Project Manager (KodeFree)</strong>
+                            <p class="text-gray-300 font-normal">Controla exhaustivamente los tiempos del ciclo de 8 semanas, administra los hitos de entregas, maneja los riesgos y provee comunicación síncrona.</p>
+                        </div>
+
+                        <div class="bg-blue-950/30 p-4 rounded-lg border border-blue-500/50 mt-4">
+                            <strong class="text-white block mb-1 text-base md:text-lg"><i class="fa-solid fa-building-user w-6 text-center"></i> Stakeholders de Negocio (Cliente)</strong>
+                            <p class="text-gray-300 font-normal">La disponibilidad del cliente es crítica. Proveen contexto operativo, ayudan en la selección y priorización en la Matriz y dan guianza sobre los datos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 22. Q&A -->
+        <div class="slide" id="slide-22">
+            <div class="flex flex-col items-center justify-center h-full text-center">
+                <i class="fa-regular fa-comments text-6xl text-cyan-400 mb-6 animate-bounce"></i>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6">Preguntas y Respuestas</h2>
+                <p class="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed font-normal">Hablemos de los retos específicos de su planta automotriz y cómo podemos superarlos juntos.</p>
+                
+                <div class="mt-12 bg-gray-900/50 p-8 rounded-2xl border border-gray-800 shadow-2xl w-full max-w-4xl text-left md:text-center">
+                    <h3 class="text-xl md:text-2xl font-bold text-white mb-8 text-center"><i class="fa-solid fa-address-card mr-2 text-cyan-400"></i>Contacto Directo</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-stretch mb-8">
+                        <!-- Presentador 1 -->
+                        <div class="flex flex-col justify-between p-4 bg-slate-950/30 rounded-xl border border-gray-800/60 md:border-r md:border-gray-800/80">
+                            <div>
+                                <p class="text-xl md:text-2xl font-bold text-white mb-1">Roberto Treviño</p>
+                                <p class="text-sm md:text-base text-cyan-400 font-semibold mb-4 uppercase tracking-wider">Managing Partner USA</p>
+                            </div>
+                            <div class="pt-3 border-t border-gray-800/40">
+                                <a href="mailto:rt@kodefree.com" class="text-sm md:text-base text-gray-300 hover:text-white transition inline-flex items-center gap-2">
+                                    <i class="fa-solid fa-envelope text-cyan-400"></i> rt@kodefree.com
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Presentador 2 -->
+                        <div class="flex flex-col justify-between p-4 bg-slate-950/30 rounded-xl border border-gray-800/60">
+                            <div>
+                                <p class="text-xl md:text-2xl font-bold text-white mb-1">Iván Fernández</p>
+                                <p class="text-sm md:text-base text-purple-400 font-semibold mb-4 uppercase tracking-wider">Chief Commercial Officer</p>
+                            </div>
+                            <div class="pt-3 border-t border-gray-800/40">
+                                <a href="mailto:if@kodefree.com" class="text-sm md:text-base text-gray-300 hover:text-white transition inline-flex items-center gap-2">
+                                    <i class="fa-solid fa-envelope text-purple-400"></i> if@kodefree.com
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center items-center text-sm md:text-base text-gray-400 border-t border-gray-800 pt-6">
+                        <a href="https://www.kodefree.com" target="_blank" class="hover:text-cyan-400 transition flex items-center"><i class="fa-solid fa-globe mr-2"></i>www.kodefree.com</a>
+                        <span class="hidden sm:block text-gray-700">|</span>
+                        <a href="https://blog.kodefree.com/" target="_blank" class="hover:text-cyan-400 transition flex items-center"><i class="fa-solid fa-rss mr-2"></i>blog.kodefree.com</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 23. Fuentes y Material Citado -->
+        <div class="slide" id="slide-23">
+            <h2 class="text-3xl md:text-4xl font-bold mb-2">Transparencia y Rigor</h2>
+            <h3 class="text-xl md:text-2xl text-cyan-400 mb-8 border-b border-gray-700 pb-2 inline-block">Fuentes de Información y Material Citado</h3>
+            
+            <div class="glass-panel p-8 text-sm md:text-base text-gray-300 space-y-6 bg-gray-900/40 leading-relaxed">
+                <ul class="list-decimal pl-6 space-y-5">
+                    <li class="pl-2">
+                        <strong class="text-white text-base md:text-lg">Gartner, Inc.</strong> (2023). "What's New in the 2023 Gartner Hype Cycle for Emerging Technologies". 
+                        <a href="https://www.gartner.com/en/articles/what-s-new-in-the-2023-gartner-hype-cycle-for-emerging-technologies" target="_blank" class="text-cyan-500 hover:underline mt-1 block"><i class="fa-solid fa-link text-xs mr-1"></i>Ver reporte oficial</a>
+                    </li>
+                    <li class="pl-2">
+                        <strong class="text-white text-base md:text-lg">General Motors & Autodesk.</strong> 
+                        <p class="text-gray-500 mt-1">Diseño Generativo impulsado por IA para reducción de peso en estructuras.</p>
+                    </li>
+                    <li class="pl-2">
+                        <strong class="text-white text-base md:text-lg">BMW Group.</strong> 
+                        <p class="text-gray-500 mt-1">Mantenimiento predictivo de maquinaria de ensamble en planta de Regensburg.</p>
+                    </li>
+                    <li class="pl-2">
+                        <strong class="text-white text-base md:text-lg">Robert Bosch GmbH.</strong> 
+                        <p class="text-gray-500 mt-1">Generación de datos sintéticos aplicados a control de calidad óptico.</p>
+                    </li>
+                    <li class="pl-2 pt-4 border-t border-gray-700">
+                        <strong class="text-white text-base md:text-lg text-red-400"><i class="fa-solid fa-file-pdf mr-2"></i>KodeFree [Anexo Interno Citado]</strong> 
+                        <p class="text-gray-400 mt-1 font-mono">"Accelerated Value Program - Full - Spanish.pdf" / "Accelerated Value Program - Spanish (1).pdf"</p>
+                        <p class="text-gray-500 mt-1 italic">Desglose de estructura, metodología de los Cuadrantes y entregables formales.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Controls / Footer Inteligente con sección dinámica sincronizada con la Agenda -->
+    <footer class="h-16 flex items-center justify-between px-6 border-t border-gray-800 bg-gray-900 shrink-0 relative z-50">
+        <!-- Botón Anterior -->
+        <button onclick="prevSlide()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded text-sm transition-colors border border-gray-700 z-50 flex items-center">
+            <i class="fa-solid fa-chevron-left mr-2"></i>Anterior
+        </button>
+        
+        <!-- Puntos e Indicador Dinámico de Sección de la Agenda -->
+        <div class="flex flex-col items-center gap-1 w-full max-w-[60%] overflow-hidden">
+            <!-- Indicador de Sección Dinámico -->
+            <div id="section-indicator" class="text-[10px] sm:text-xs font-semibold text-cyan-400 uppercase tracking-widest hidden md:block whitespace-nowrap text-ellipsis">
+                Introducción
+            </div>
+            
+            <!-- Barra de Puntos (Dots) Interactivos con scroll en móvil -->
+            <div id="dot-indicators" class="flex items-center gap-1.5 overflow-x-auto w-full justify-center px-2 py-1 scrollbar-hide">
+                <!-- Generados vía JavaScript -->
+            </div>
+        </div>
+
+        <!-- Botón Siguiente -->
+        <button id="next-button" onclick="nextSlide()" class="px-4 py-2 bg-kf-red hover:bg-red-600 rounded text-sm font-bold transition-colors z-50 flex items-center">
+            <span class="hidden sm:inline mr-2">Siguiente</span><i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </footer>
+
+    <script>
+        // =========================================================================
+        // CONFIGURACIÓN DE IMÁGENES DE LOS PRESENTADORES
+        // Puedes cambiar estos valores por rutas locales de tu computadora o URLs remotas.
+        // Ejemplos:
+        //   - Ruta local: "mi_foto.jpg" o "images/foto_ivan.png"
+        //   - URL remota: "https://ejemplo.com/imagenes/foto_ivan.jpg"
+        // =========================================================================
+        const CONFIG_PRESENTER_1_IMAGE = ""; // Dejar vacío para Gravatar automático de Roberto
+        const CONFIG_PRESENTER_2_IMAGE = "./ivan.jpg"; // Reemplaza esto con tu imagen local o remota de Iván
+
+        // Variables globales de control (23 diapositivas totales en esta versión)
+        let currentSlide = 1;
+        const totalSlides = 23;
+        const dotContainer = document.getElementById('dot-indicators');
+
+        // Mapeo dinámico de diapositiva a sección de la Agenda actualizado
+        const sectionMap = {
+            1: "Introducción",
+            2: "Agenda",
+            3: "Acerca de los Expositores",
+            4: "¿Quiénes Somos?",
+            5: "El Landscape Actual",
+            6: "El Landscape Actual",
+            7: "El Landscape Actual",
+            8: "El Landscape Actual",
+            9: "El Landscape Actual",
+            10: "Cambio de Paradigma y Costos",
+            11: "Cambio de Paradigma y Costos",
+            12: "La Visión de KodeFree",
+            13: "La Visión de KodeFree",
+            14: "La Visión de KodeFree",
+            15: "Casos de Uso Automotrices",
+            16: "Casos de Uso Automotrices",
+            17: "Casos de Uso Automotrices",
+            18: "Casos de Uso Automotrices",
+            19: "Cómo Empezar",
+            20: "Cómo Empezar",
+            21: "Cómo Empezar",
+            22: "Preguntas y Respuestas",
+            23: "Fuentes y Referencias"
+        };
+
+        function animationReset(){
+            const mainHeader = document.getElementById('main-header');
+            if (mainHeader) {
+                mainHeader.classList.remove('glow-header');
+                void mainHeader.offsetWidth;
+                mainHeader.classList.add('glow-header');
+            }
+        }
+
+        // Función global de renderizado de diapositivas
+        function updateSlides() {
+            document.querySelectorAll('.slide').forEach(el => el.classList.remove('active'));
+            const activeSlide = document.getElementById(`slide-${currentSlide}`);
+            if (activeSlide) {
+                activeSlide.classList.add('active');
+            }
+            
+            // Detener la animación de rebote del icono de Q&A después de 10 segundos de estar activo
+            if (currentSlide === 22) {
+                const qaIcon = document.querySelector('#slide-22 i.fa-regular.fa-comments');
+                if (qaIcon && !qaIcon.dataset.timerStarted) {
+                    qaIcon.dataset.timerStarted = 'true';
+                    setTimeout(() => {
+                        qaIcon.classList.remove('animate-bounce');
+                    }, 10000);
+                }
+            }
+
+            // Actualizar el número de diapositiva estático y global
+            const fixedSlideNumber = document.getElementById('fixed-slide-number');
+            if (fixedSlideNumber) {
+                fixedSlideNumber.innerText = `DIAPOSITIVA ${currentSlide} / ${totalSlides}`;
+            }
+
+            // Actualizar animaciones
+            animationReset();
+            
+            // Actualizar indicador de texto de sección
+            const sectionIndicator = document.getElementById('section-indicator');
+            if (sectionIndicator) {
+                sectionIndicator.innerText = sectionMap[currentSlide] || "KodeFree Presentation";
+            }
+            
+            // Sincronizar clases de los dots de navegación
+            if (dotContainer && dotContainer.children.length > 0) {
+                const dots = dotContainer.children;
+                for (let i = 0; i < dots.length; i++) {
+                    if (i + 1 === currentSlide) {
+                        dots[i].className = 'h-1.5 rounded-full transition-all duration-300 cursor-pointer w-6 bg-kf-red shrink-0';
+                    } else {
+                        dots[i].className = 'h-1.5 rounded-full transition-all duration-300 cursor-pointer w-1.5 bg-gray-700 hover:bg-gray-500 shrink-0';
+                    }
+                }
+            }
+        }
+
+        // Inicializar los puntos de progreso dinámicamente
+        function initDots() {
+            if (dotContainer) {
+                dotContainer.innerHTML = '';
+                for (let i = 1; i <= totalSlides; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = `h-1.5 rounded-full transition-all duration-300 cursor-pointer ${i === currentSlide ? 'w-6 bg-kf-red' : 'w-1.5 bg-gray-700 hover:bg-gray-500'} shrink-0`;
+                    dot.onclick = () => goToSlide(i);
+                    dotContainer.appendChild(dot);
+                }
+            }
+        }
+
+        // Navegación secuencial - Siguiente
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlides();
+            }
+        }
+
+        // Navegación secuencial - Anterior
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlides();
+            }
+        }
+
+        // Navegación directa
+        function goToSlide(slideIndex) {
+            if (slideIndex >= 1 && slideIndex <= totalSlides) {
+                currentSlide = slideIndex;
+                updateSlides();
+            }
+        }
+
+        // Navegación por teclado nativa
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                e.preventDefault();
+                nextSlide();
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+        
+        // Fetch robusto de la foto de perfil en Gravatar con fallback integrado
+        window.addEventListener('DOMContentLoaded', () => {
+            const imgBig = document.getElementById('presenter-img');
+            const iconBig = document.getElementById('presenter-icon');
+            const imgSmall = document.getElementById('presenter-img-small');
+            const iconSmall = document.getElementById('presenter-icon-small');
+
+            // Carga o consulta para el Presentador 1 (Roberto)
+            if (CONFIG_PRESENTER_1_IMAGE) {
+                setupPresenterImage(CONFIG_PRESENTER_1_IMAGE, imgBig, iconBig, imgSmall, iconSmall);
+            } else {
+                // Intento de conexión asíncrona a la API de Gravatar
+                fetch('https://api.gravatar.com/v3/profiles/robtrevino')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Query error');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.avatar_url) {
+                            let highResUrl = data.avatar_url;
+                            if(highResUrl.includes('?s=')) {
+                                highResUrl = highResUrl.replace(/\?s=\d+/, '?s=400');
+                            } else {
+                                highResUrl += '?s=400';
+                            }
+                            setupPresenterImage(highResUrl, imgBig, iconBig, imgSmall, iconSmall);
+                        }
+                    })
+                    .catch(err => {
+                        console.log('API Gravatar profiles no disponible, aplicando fallback directo...', err);
+                        const defaultAvatar = 'https://www.gravatar.com/avatar/4b6e507b539a25032959828fa6b0ff26?s=400';
+                        setupPresenterImage(defaultAvatar, imgBig, iconBig, imgSmall, iconSmall);
+                    });
+            }
+
+            // Carga para el Presentador 2 (Iván)
+            const imgBig2 = document.getElementById('presenter2-img');
+            const iconBig2 = document.getElementById('presenter2-icon');
+            const imgSmall2 = document.getElementById('presenter2-img-small');
+            const iconSmall2 = document.getElementById('presenter2-icon-small');
+
+            if (CONFIG_PRESENTER_2_IMAGE) {
+                setupPresenterImage(CONFIG_PRESENTER_2_IMAGE, imgBig2, iconBig2, imgSmall2, iconSmall2);
+            }
+        });
+
+        // Función auxiliar para configurar imágenes de presentadores
+        function setupPresenterImage(src, elementBig, iconBig, elementSmall, iconSmall) {
+            if (elementBig && iconBig) {
+                elementBig.onload = () => {
+                    elementBig.classList.remove('hidden');
+                    iconBig.classList.add('hidden');
+                };
+                elementBig.src = src;
+                elementBig.onerror = () => {
+                    elementBig.classList.add('hidden');
+                    iconBig.classList.remove('hidden');
+                };
+            }
+
+            if (elementSmall && iconSmall) {
+                elementSmall.onload = () => {
+                    elementSmall.classList.remove('hidden');
+                    iconSmall.classList.add('hidden');
+                };
+                elementSmall.src = src;
+                elementSmall.onerror = () => {
+                    elementSmall.classList.add('hidden');
+                    iconSmall.classList.remove('hidden');
+                };
+            }
+        }
+        
+        // Soporte para gestos táctiles en móvil (Swipes)
+        let touchstartX = 0;
+        let touchendX = 0;
+        document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            if (touchendX < touchstartX - 50) nextSlide();
+            if (touchendX > touchstartX + 50) prevSlide();
+        }, {passive: true});
+
+        // Inicializar dots y vistas al cargar ventana
+        window.onload = function() {
+            initDots();
+            updateSlides();
+        }
+    </script>
+    <style>
+        /* Utilidad para esconder scrollbar en barra de navegación de puntos (mobile) */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</body>
+</html>
